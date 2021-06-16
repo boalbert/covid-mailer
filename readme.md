@@ -17,7 +17,7 @@ Enkelt att justera vilken kommun eller vilka mottagningar man vill få notiser o
 
 Exempel på e-post som skickas ut (under testning, ej filtrerat på endast Göteborg). 
 
-![](https://raw.githubusercontent.com/boalbert/covid-vaccine-alert/master/exempel.png?token=AQB62ZI5GEMU7M7UGJNB53DA2MQTE)
+![](readme.assets/exempel.png)
 
 ## Inställningar
 
