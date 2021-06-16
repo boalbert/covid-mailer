@@ -11,6 +11,7 @@ import se.boalbert.covidvaccinationalert.model.TestCenter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +29,7 @@ public class RestClient implements IRestClient {
 	@Value("${CLIENT_SECRET}")
 	private String CLIENT_SECRET;
 
-	private final HashSet<String> oldTimeSlots = new HashSet<>();
+	private final HashSet<String> oldTimeSlots = new LinkedHashSet<>();
 
 	/**
 	 * @return list of all the testcenters inside ListTestCenter
