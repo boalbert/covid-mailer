@@ -38,7 +38,7 @@ public class Alert {
 //	@Scheduled(fixedRate = 900000, initialDelay = 5000) // 15 min
 
 	// Every 15 minutes. Between 07-22. Every day. Every month. Every year.
-	@Scheduled(cron =  "*/15 7-22 * * *", zone = "Europe/Stockholm")
+//	@Scheduled(cron =  "* */15 7-22 * * *", zone = "Europe/Stockholm")
 	public void sendAlert() {
 		log.info(">>> Running sendAlert...");
 		// Incoming fresh data
