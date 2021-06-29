@@ -1,31 +1,19 @@
 package se.boalbert.covidvaccinationalert.model;
 
 public class TestCenter {
-	String title;
-	String hsaid;
-	String municipalityName;
-	String municipality;
-	String urlBooking;
-	String urlContactCard;
-	String urlContactCardText;
-	String testtype;
-	Long timeslots;
-	String updated;
+	public String title;
+	public String hsaid;
+	public String municipalityName;
+	public String municipality;
+	public String urlBooking;
+	public String urlContactCard;
+	public String urlContactCardText;
+	public String testtype;
+	public Long timeslots;
+	public String ageGroup; // Född 1981 eller tidigare.
+	public String updated;
 
 	public TestCenter() {
-	}
-
-	public TestCenter(String title, String hsaid, String municipalityName, String municipality, String urlBooking, String urlContactCard, String urlContactCardText, String testtype, Long timeslots, String updated) {
-		this.title = title;
-		this.hsaid = hsaid;
-		this.municipalityName = municipalityName;
-		this.municipality = municipality;
-		this.urlBooking = urlBooking;
-		this.urlContactCard = urlContactCard;
-		this.urlContactCardText = urlContactCardText;
-		this.testtype = testtype;
-		this.timeslots = timeslots;
-		this.updated = updated;
 	}
 
 	@Override
@@ -40,8 +28,31 @@ public class TestCenter {
 				", urlContactCardText='" + urlContactCardText + '\'' +
 				", testtype='" + testtype + '\'' +
 				", timeslots=" + timeslots +
+				", ageGroup='" + ageGroup + '\'' +
 				", updated='" + updated + '\'' +
 				'}';
+	}
+
+	public String getAgeGroup() {
+		return ageGroup;
+	}
+
+	public void setAgeGroup(String ageGroup) {
+		this.ageGroup = ageGroup;
+	}
+
+	public TestCenter(String title, String hsaid, String municipalityName, String municipality, String urlBooking, String urlContactCard, String urlContactCardText, String testtype, Long timeslots, String ageGroup, String updated) {
+		this.title = title;
+		this.hsaid = hsaid;
+		this.municipalityName = municipalityName;
+		this.municipality = municipality;
+		this.urlBooking = urlBooking;
+		this.urlContactCard = urlContactCard;
+		this.urlContactCardText = urlContactCardText;
+		this.testtype = testtype;
+		this.timeslots = timeslots;
+		this.ageGroup = ageGroup;
+		this.updated = updated;
 	}
 
 	public String getTitle() {
