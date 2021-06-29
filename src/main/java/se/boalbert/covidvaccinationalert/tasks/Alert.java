@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import se.boalbert.covidvaccinationalert.alert.MailClient;
-import se.boalbert.covidvaccinationalert.alert.TweetClient;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 import se.boalbert.covidvaccinationalert.service.IRestClient;
 
@@ -22,13 +21,10 @@ public class Alert {
 
 	private final IRestClient restClient;
 	private final MailClient mailClient;
-	//TODO Move tweet-functionality to own project / service
-	private final TweetClient tweetClient;
 
-	public Alert(IRestClient restClient, MailClient mailClient, TweetClient tweetClient) {
+	public Alert(IRestClient restClient, MailClient mailClient) {
 		this.restClient = restClient;
 		this.mailClient = mailClient;
-		this.tweetClient = tweetClient;
 	}
 
 	// TODO Set schedule via environment-variables
@@ -66,7 +62,5 @@ public class Alert {
 		// Send for Nödinge / Ale
 		mailClient.sendEmailToRecipientsBasedOnMunicipality(availableInVanersborgAndTrollhattan, "Trollhättan / Vänersborg", recipientsVanersborgTrollhattan);
 
-		// Send tweets
-		//		tweetClient.sendTweets(newSlots);
 	}
 }
