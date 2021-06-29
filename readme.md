@@ -1,6 +1,6 @@
 # Covid-Booking-Mailer
 
-Underlättar bokning av vaccin-tid i Västra Götaland. Hämtar lediga vaccinationstider och mailar ut enligt satt cron-intervall (Var 15:e minut mellan 07-22).
+Underlättar bokning av vaccin-tid i Västra Götaland. Hämtar lediga vaccinationstider och mailar ut enligt satt cron-intervall.
 
 Enkelt att justera vilken kommun eller vilka mottagningar man vill få notiser om. 
 
