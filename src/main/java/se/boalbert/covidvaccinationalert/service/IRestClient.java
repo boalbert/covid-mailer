@@ -4,9 +4,10 @@ import se.boalbert.covidvaccinationalert.model.ListTestCenter;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IRestClient {
-	List<TestCenter> extractAllCenters();
+	Map<String, TestCenter> extractAllCenters();
 
 	ListTestCenter getFullResponseFromApi();
 
@@ -16,8 +17,8 @@ public interface IRestClient {
 
 	List<TestCenter> findAvailableTimeslotsByMunicipalityId(List<TestCenter> listCenters, String municipalityId);
 
-	List<TestCenter> findAllAvailableTimeSlots(List<TestCenter> listCenters);
+	Map<String, TestCenter> findAllAvailableTimeSlots(Map<String, TestCenter> listCenters);
 
-	List<TestCenter> filterCentersByUpdated(List<TestCenter> testCenterList);
+	Map<String, TestCenter> filterCentersByUpdated(Map<String, TestCenter> testCenterList);
 }
 

@@ -9,36 +9,31 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import se.boalbert.covidvaccinationalert.model.ListTestCenter;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class RestClient implements IRestClient {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(RestClient.class);
-
+	private final HashSet<String> oldTimeSlots = new LinkedHashSet<>();
 	@Value("${API_URI}")
 	private String API_URI;
-
 	@Value("${CLIENT_ID}")
 	private String CLIENT_ID;
-
 	@Value("${CLIENT_SECRET}")
 	private String CLIENT_SECRET;
-
-	private final HashSet<String> oldTimeSlots = new LinkedHashSet<>();
 
 	/**
 	 * @return list of all the testcenters inside ListTestCenter
 	 */
 	@Override
-	public List<TestCenter> extractAllCenters() {
+	public Map<String, TestCenter> extractAllCenters() {
 		ListTestCenter listTestCenter = getFullResponseFromApi();
 
-		return listTestCenter.getTestcenters();
+		return listTestCenter.getTestcenters().stream()
+				.collect(Collectors.toMap(TestCenter :: getTitle, testCenter -> testCenter));
+
 	}
 
 	/**
@@ -132,38 +127,38 @@ public class RestClient implements IRestClient {
 	}
 
 	@Override
-	public List<TestCenter> findAllAvailableTimeSlots(List<TestCenter> listCenters) {
+	public Map<String, TestCenter> findAllAvailableTimeSlots(Map<String, TestCenter> allTestCenters) {
 
-		return listCenters.stream()
-				.filter(testCenter -> testCenter.getTimeslots() != null)
-				.filter(testCenter -> testCenter.getTimeslots() != 0)
-				.collect(Collectors.toList());
+		return allTestCenters.entrySet().stream()
+				.filter(map -> map.getValue().getTimeslots() != null)
+				.filter(map -> map.getValue().getTimeslots() != 0)
+				.collect(Collectors.toMap(Map.Entry :: getKey, Map.Entry :: getValue));
 	}
 
 	/**
 	 * Filters all open timeslots. Try to add the timeslot signature to HashSet 'sentAlerts'
 	 * If it fails (not unique) alert it not sent.
-	 * If it succeds it adds it to 'sentAlert' HashSet and then the timeslot will be sent out
+	 * If it succeds it adds it to 'SentAlert' HashSet and then the timeslot will be sent out
 	 *
 	 * @param testCenterList
 	 * @return list if new timeSlots
 	 */
-	public List<TestCenter> filterCentersByUpdated(List<TestCenter> testCenterList) {
 
-		List<TestCenter> newTimeSlots = new ArrayList<>();
+	@Override
+	public Map<String, TestCenter> filterCentersByUpdated(Map<String, TestCenter> testCenterList) {
+
+		Map<String, TestCenter> newTimeSlots = new LinkedHashMap<>();
 
 		String timeSlotSignature = "";
 
-		for (TestCenter testCenter : testCenterList) {
+		for (Map.Entry<String, TestCenter> testCenter : testCenterList.entrySet()) {
 
-			timeSlotSignature = testCenter.getHsaid() + testCenter.getUpdated();
+			timeSlotSignature = testCenter.getValue().getHsaid() + testCenter.getValue().getUpdated();
+
 
 			if (oldTimeSlots.add(timeSlotSignature)) {
 				oldTimeSlots.add(timeSlotSignature);
-				log.info(" +++ Adding timeSlot to oldAlerts HashSet: {}", timeSlotSignature);
-				newTimeSlots.add(testCenter);
-			} else {
-				log.info(" --- Timeslot found found in oldAlerts HashSet: {}", timeSlotSignature);
+				newTimeSlots.put(testCenter.getValue().getTitle(), testCenter.getValue());
 			}
 		}
 		return newTimeSlots;

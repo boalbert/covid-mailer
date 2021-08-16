@@ -1,5 +1,11 @@
 package se.boalbert.covidvaccinationalert.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class TestCenter {
 	public String title;
 	public String hsaid;
@@ -10,35 +16,10 @@ public class TestCenter {
 	public String urlContactCardText;
 	public String testtype;
 	public Long timeslots;
-	public String ageGroup; // Född 1981 eller tidigare.
+	public String ageGroup;
 	public String updated;
 
 	public TestCenter() {
-	}
-
-	@Override
-	public String toString() {
-		return "TestCenter{" +
-				"title='" + title + '\'' +
-				", hsaid='" + hsaid + '\'' +
-				", municipalityName='" + municipalityName + '\'' +
-				", municipality='" + municipality + '\'' +
-				", urlBooking='" + urlBooking + '\'' +
-				", urlContactCard='" + urlContactCard + '\'' +
-				", urlContactCardText='" + urlContactCardText + '\'' +
-				", testtype='" + testtype + '\'' +
-				", timeslots=" + timeslots +
-				", ageGroup='" + ageGroup + '\'' +
-				", updated='" + updated + '\'' +
-				'}';
-	}
-
-	public String getAgeGroup() {
-		return ageGroup;
-	}
-
-	public void setAgeGroup(String ageGroup) {
-		this.ageGroup = ageGroup;
 	}
 
 	public TestCenter(String title, String hsaid, String municipalityName, String municipality, String urlBooking, String urlContactCard, String urlContactCardText, String testtype, Long timeslots, String ageGroup, String updated) {
@@ -53,6 +34,19 @@ public class TestCenter {
 		this.timeslots = timeslots;
 		this.ageGroup = ageGroup;
 		this.updated = updated;
+	}
+
+	public static List<TestCenter> mergeMapsAndReturnUniqueTestCenters(Map<String, TestCenter> restCenters, Map<String, TestCenter> scrapeCenters) {
+
+		Map<String, TestCenter> merged = Stream.of(restCenters, scrapeCenters)
+				.flatMap(map -> map.entrySet().stream())
+				.collect(Collectors.toMap(
+						Map.Entry :: getKey,
+						Map.Entry :: getValue,
+						(v1, v2) -> new TestCenter(v1.getTitle(), v1.getHsaid(), v1.getMunicipalityName(), v1.getMunicipality(), v1.getUrlBooking(), v1.getUrlContactCard(), v1.getUrlContactCardText(), v1.getTesttype(), v1.getTimeslots(), v2.getAgeGroup(), v1.getUpdated())
+				));
+
+		return new ArrayList<>(merged.values());
 	}
 
 	public String getTitle() {
@@ -123,8 +117,12 @@ public class TestCenter {
 		return timeslots;
 	}
 
-	public void setTimeslots(Long timeslots) {
-		this.timeslots = timeslots;
+	public String getAgeGroup() {
+		return ageGroup;
+	}
+
+	public void setAgeGroup(String ageGroup) {
+		this.ageGroup = ageGroup;
 	}
 
 	public String getUpdated() {
@@ -133,6 +131,27 @@ public class TestCenter {
 
 	public void setUpdated(String updated) {
 		this.updated = updated;
+	}
+
+	public void setTimeslots(Long timeslots) {
+		this.timeslots = timeslots;
+	}
+
+	@Override
+	public String toString() {
+		return "TestCenter{" +
+				"title='" + title + '\'' +
+				", hsaid='" + hsaid + '\'' +
+				", municipalityName='" + municipalityName + '\'' +
+				", municipality='" + municipality + '\'' +
+				", urlBooking='" + urlBooking + '\'' +
+				", urlContactCard='" + urlContactCard + '\'' +
+				", urlContactCardText='" + urlContactCardText + '\'' +
+				", testtype='" + testtype + '\'' +
+				", timeslots=" + timeslots +
+				", ageGroup='" + ageGroup + '\'' +
+				", updated='" + updated + '\'' +
+				'}';
 	}
 
 }

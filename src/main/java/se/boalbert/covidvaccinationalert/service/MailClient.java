@@ -1,4 +1,4 @@
-package se.boalbert.covidvaccinationalert.alert;
+package se.boalbert.covidvaccinationalert.service;
 
 import org.simplejavamail.MailException;
 import org.simplejavamail.api.email.Email;
@@ -37,20 +37,21 @@ public class MailClient {
 	@Value("${TRANSPORT_STRATEGY}")
 	private String TRANSPORT_STRATEGY;
 
-	public void sendEmailToRecipientsBasedOnMunicipality(List<TestCenter> availableInMunicipality, String municipality, Collection<String> recipientList) {
+	public void sendEmailToRecipientsBasedOnMunicipality(List<TestCenter> availableInMunicipality, String municipality, Collection<String> recipents) {
 
-		if (availableInMunicipality.size() > 0) {
+		if (availableInMunicipality.size() > 0 && recipents.size() > 0) {
 
-			log.info(">>> New timeslots found in {}, sending alert...", municipality);
+			log.info(">>> {} timeslots found in {}, sending alert to {} recipients.", availableInMunicipality.size(), municipality, recipents.size());
 
 			String content = createEmailContent(availableInMunicipality, municipality);
 
-			Email email = setupEmail(recipientList, content, municipality);
+			Email email = setupEmail(recipents, content, municipality);
 
 			sendEmail(email);
 
 		} else {
-			log.info(">>> 0 new timeslots found for: {}", municipality);
+			log.info(">>> {} new timeslots found for: {}", availableInMunicipality.size(), municipality);
+			log.info(">>> {} recipients for {}", recipents.size(), municipality);
 		}
 	}
 
@@ -60,23 +61,23 @@ public class MailClient {
 		String header = """
 				<html>
 					<body>
-						<h1>Lediga tider i <u>%s</u> </h1> 
-						<br> """.formatted(region);
+						<h1>Lediga tider i <u>%s</u> </h1><br>
+						""".formatted(region);
 
 		stringBuilder.append(header);
 
 		for (TestCenter testCenter : testCenterList) {
 			String body = """
-					              <p>
+					           <p>
 					               <b>Stad: </b> %s <br>
 					               <b>Mottagning: </b> %s <br>
 					               <b>Lediga tider: </b> %s <br>
-					               <b>Boka tid: </b> <a href="%s"> Länk </a> <br>
-					               <b>Senast uppdaterad </b> %s <br>
+					               <b>Boka tid: </b> <a href="%s"> Länk </a> 
+					               <br>
 					               <hr>
 					               <br>
-					             </p>
-					""".formatted(testCenter.getMunicipalityName(), testCenter.getTitle(), testCenter.getTimeslots(), testCenter.getUrlBooking(), testCenter.getUpdated());
+					           </p>
+					""".formatted(testCenter.getMunicipalityName(), testCenter.getTitle(), testCenter.getTimeslots(), testCenter.getUrlBooking());
 			stringBuilder.append(body);
 		}
 

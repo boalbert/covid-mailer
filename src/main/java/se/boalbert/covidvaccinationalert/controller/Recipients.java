@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @RestController
-public class RecipientController {
+public class Recipients {
 
-	private static final Logger log = org.slf4j.LoggerFactory.getLogger(RecipientController.class);
+	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Recipients.class);
 
 	public static Collection<String> recipientsGbg = new ArrayList<>();
 	public static Collection<String> recipientsNodingeAle = new ArrayList<>();

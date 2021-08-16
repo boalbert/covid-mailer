@@ -4,14 +4,16 @@ import org.slf4j.Logger;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import se.boalbert.covidvaccinationalert.alert.MailClient;
+import se.boalbert.covidvaccinationalert.service.MailClient;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
+import se.boalbert.covidvaccinationalert.service.Scraper;
 import se.boalbert.covidvaccinationalert.service.IRestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static se.boalbert.covidvaccinationalert.controller.RecipientController.*;
+import static se.boalbert.covidvaccinationalert.controller.Recipients.*;
 
 @Configuration
 @EnableScheduling
@@ -19,48 +21,96 @@ public class Alert {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Alert.class);
 
+	private static Integer tempTimeSlotsGbg = 0;
+	private static Integer tempTimeSlotsNodingeAle = 0;
+	private static Integer tempTimeSlotsVbg = 0;
+
 	private final IRestClient restClient;
 	private final MailClient mailClient;
+	private final Scraper scraper;
 
-	public Alert(IRestClient restClient, MailClient mailClient) {
+	public Alert(IRestClient restClient, MailClient mailClient, Scraper scraper) {
 		this.restClient = restClient;
 		this.mailClient = mailClient;
+		this.scraper = scraper;
 	}
 
-	// TODO Set schedule via environment-variables
-	//	@Scheduled(fixedRate = 15000) // 15 sec
-	//	@Scheduled(fixedRate = 30000) // 30 sec
-	//  Every 15 minutes. Between 07-22. Every day. Every month. Every year.
-	//	@Scheduled(cron =  "* */15 7-22 * * *", zone = "Europe/Stockholm")
 	@Scheduled(fixedRate = 900000, initialDelay = 5000) // 15 min
 	public void sendAlert() {
 		log.info(">>> Running sendAlert...");
 		// Incoming fresh data
-
-		// Filter out open timeslots
-		List<TestCenter> openTimeSlots = restClient.findAllAvailableTimeSlots(restClient.extractAllCenters());
-
 		// Filter our timeslots which has already been mailed out
-		List<TestCenter> newSlots = restClient.filterCentersByUpdated(openTimeSlots);
+		Map<String, TestCenter> restDataOpenSlots = restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.extractAllCenters()));
 
-		// Filter timeslots based on Municipality
-		// Two mailing-lists as of now
-		List<TestCenter> availableInGothenburg = newSlots.stream().filter(center -> center.getMunicipalityName().equals("Göteborg")).collect(Collectors.toList());
-		List<TestCenter> availableInNodingeAndAle = newSlots.stream().filter(center -> center.getMunicipalityName().equals("Nödinge") || center.getMunicipalityName().equals("Ale") || center.getMunicipalityName().equals("Göteborg")).collect(Collectors.toList());
-		List<TestCenter> availableInVanersborgAndTrollhattan = newSlots.stream().filter(center -> center.getMunicipalityName().equals("Vänersborg") || center.getMunicipalityName().equals("Trolhättan")).collect(Collectors.toList());
+		// Scrape data
+		Map<String, TestCenter> scrapeData = scraper.scrapeData();
 
-		recipientsGbg.add("andersson.albert@gmail.com");
-		recipientsVanersborgTrollhattan.add("andersson.albert@gmail.com");
-		recipientsNodingeAle.add("andersson.albert@gmail.com");
+		// Merge Scraped data and API data
+		List<TestCenter> mergedMaps = TestCenter.mergeMapsAndReturnUniqueTestCenters(restDataOpenSlots, scrapeData);
+
+		// Filter out timeslots for each mailing-list
+
+		// Nödinge / Ale
+		List<TestCenter> openTimeSlotsNodingeAle = mergedMaps.stream().filter(
+				testCenter -> testCenter.getMunicipalityName().equals("Göteborg")
+						|| testCenter.getMunicipalityName().equals("Nödinge")
+						|| testCenter.getMunicipalityName().equals("Ale")
+						|| testCenter.getMunicipalityName().equals("Kungälv")
+		).collect(Collectors.toList());
+
+		// Vänersborg / Trollhättan
+		List<TestCenter> openTimeSlotsVanersborgTrollhattan = mergedMaps.stream().filter(
+				testCenter -> testCenter.getMunicipalityName().equals("Vänersborg")
+						|| testCenter.getMunicipalityName().equals("Trollhättan")).collect(Collectors.toList());
+
+		// Gothenburg
+		List<TestCenter> openTimeSlotsGothenburg = mergedMaps.stream().filter(
+				testCenter -> testCenter.getMunicipalityName().equals("Göteborg")).collect(Collectors.toList());
+
+		// Send out emails
+		sendEmailGothenburg(openTimeSlotsGothenburg);
+
+		sendEmailNodingeAle(openTimeSlotsNodingeAle);
+
+		sendEmailVbg(openTimeSlotsVanersborgTrollhattan);
+	}
+
+	private void sendEmailGothenburg(List<TestCenter> openTimeSlotsGothenburg) {
+		Integer updatedTimeSlotsGbg = openTimeSlotsGothenburg.stream()
+				.reduce(0, (testCenterSlot, testCenter) -> Math.toIntExact(testCenterSlot + testCenter.getTimeslots()), Integer :: sum);
 
 		// Send for GBG
-		mailClient.sendEmailToRecipientsBasedOnMunicipality(availableInGothenburg, "Göteborg", recipientsGbg);
+		if (!updatedTimeSlotsGbg.equals(tempTimeSlotsGbg)) {
+			tempTimeSlotsGbg = updatedTimeSlotsGbg;
+			mailClient.sendEmailToRecipientsBasedOnMunicipality(openTimeSlotsGothenburg, "Göteborg", recipientsGbg);
+		} else {
+			log.info(">>> No updates for GBG:  {}", openTimeSlotsGothenburg.size());
+		}
+	}
+
+	private void sendEmailNodingeAle(List<TestCenter> openTimeSlotsNodingeAle) {
+		Integer updatedTimeSlotsNodingeAle = openTimeSlotsNodingeAle.stream()
+				.reduce(0, (testCenterSlot, testCenter) -> Math.toIntExact(testCenterSlot + testCenter.getTimeslots()), Integer :: sum);
 
 		// Send for Nödinge / Ale
-		mailClient.sendEmailToRecipientsBasedOnMunicipality(availableInNodingeAndAle, "Nödinge / Ale", recipientsNodingeAle);
+		if (!updatedTimeSlotsNodingeAle.equals(tempTimeSlotsNodingeAle)) {
+			tempTimeSlotsNodingeAle = updatedTimeSlotsNodingeAle;
+			mailClient.sendEmailToRecipientsBasedOnMunicipality(openTimeSlotsNodingeAle, "Nödinge / Ale", recipientsNodingeAle);
+		} else {
+			log.info(">>> No updates for Nödinge / Ale:  {}", openTimeSlotsNodingeAle.size());
+		}
+	}
 
-		// Send for Nödinge / Ale
-		mailClient.sendEmailToRecipientsBasedOnMunicipality(availableInVanersborgAndTrollhattan, "Trollhättan / Vänersborg", recipientsVanersborgTrollhattan);
+	private void sendEmailVbg(List<TestCenter> openTimeSlotsVanersborgTrollhattan) {
+		Integer updatedTimeSlotsVbg = openTimeSlotsVanersborgTrollhattan.stream()
+				.reduce(0, (testCenterSlot, testCenter) -> Math.toIntExact(testCenterSlot + testCenter.getTimeslots()), Integer :: sum);
 
+		// Send for VBG / THN
+		if (!updatedTimeSlotsVbg.equals(tempTimeSlotsVbg)) {
+			tempTimeSlotsVbg = updatedTimeSlotsVbg;
+			mailClient.sendEmailToRecipientsBasedOnMunicipality(openTimeSlotsVanersborgTrollhattan, "Vänersborg / Trollhättan", recipientsVanersborgTrollhattan);
+		} else {
+			log.info(">>> No updates for Trollhättan / VBG:  {}", openTimeSlotsVanersborgTrollhattan.size());
+		}
 	}
 }
