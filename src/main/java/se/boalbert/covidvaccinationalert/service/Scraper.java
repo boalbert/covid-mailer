@@ -19,12 +19,13 @@ public class Scraper {
 
 	public Map<String, TestCenter> scrapeBookingData() {
 
+		String vaccinationWebsiteUrl = "https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/";
 		Map<String, TestCenter> scrapedTestCenters = new HashMap<>();
 
 		try {
-			Document htmlDocument = loadBookingWebsite();
+			Document htmlDocument = loadWebsite(vaccinationWebsiteUrl);
 			Elements testCenterDivs = findTestCenterDivs(htmlDocument);
-			loopOverElementsAndInsertIntoHashMap(scrapedTestCenters, testCenterDivs);
+			loopOverDivsAndSaveTestCenter(scrapedTestCenters, testCenterDivs);
 
 		} catch (IOException ex) {
 			log.error(">>> Error parsing document when scraping...");
@@ -33,15 +34,15 @@ public class Scraper {
 		return scrapedTestCenters;
 	}
 
-	private Document loadBookingWebsite() throws IOException {
-		return Jsoup.connect("https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/").get();
+	private Document loadWebsite(String url) throws IOException {
+		return Jsoup.connect(url).get();
 	}
 
 	private Elements findTestCenterDivs(Document htmlDocument) {
 		return htmlDocument.getElementsByClass("media-body");
 	}
 
-	private void loopOverElementsAndInsertIntoHashMap(Map<String, TestCenter> scrapedTestCenters, Elements testCenterDivs) {
+	private void loopOverDivsAndSaveTestCenter(Map<String, TestCenter> scrapedTestCenters, Elements testCenterDivs) {
 		for (Element testCenter : testCenterDivs) {
 			// Göteborg: Drive In Nötkärnan Slottskogen
 			String heading = testCenter.select("h3").text();
