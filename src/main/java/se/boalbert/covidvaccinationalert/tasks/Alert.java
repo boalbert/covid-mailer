@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import se.boalbert.covidvaccinationalert.service.MailClient;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
-import se.boalbert.covidvaccinationalert.service.Scraper;
 import se.boalbert.covidvaccinationalert.service.IRestClient;
+import se.boalbert.covidvaccinationalert.service.MailClient;
+import se.boalbert.covidvaccinationalert.service.Scraper;
 
 import java.util.List;
 import java.util.Map;
@@ -35,23 +35,23 @@ public class Alert {
 		this.scraper = scraper;
 	}
 
-	@Scheduled(fixedRate = 900000, initialDelay = 5000) // 15 min
+	@Scheduled(fixedRate = 60000, initialDelay = 5000) // 15 min
 	public void sendAlert() {
 		log.info(">>> Running sendAlert...");
 		// Incoming fresh data
 		// Filter our timeslots which has already been mailed out
-		Map<String, TestCenter> restDataOpenSlots = restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.extractAllCenters()));
+		Map<String, TestCenter> restDataOpenSlots = restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.convertDataFromApiCallToTestCenter()));
 
 		// Scrape data
-		Map<String, TestCenter> scrapeData = scraper.scrapeData();
+		Map<String, TestCenter> scrapeData = scraper.scrapeBookingData();
 
 		// Merge Scraped data and API data
-		List<TestCenter> mergedMaps = TestCenter.mergeMapsAndReturnUniqueTestCenters(restDataOpenSlots, scrapeData);
+		List<TestCenter> mergedData = TestCenter.mergeMapsAndReturnUniqueTestCenters(restDataOpenSlots, scrapeData);
 
 		// Filter out timeslots for each mailing-list
 
 		// Nödinge / Ale
-		List<TestCenter> openTimeSlotsNodingeAle = mergedMaps.stream().filter(
+		List<TestCenter> openTimeSlotsNodingeAle = mergedData.stream().filter(
 				testCenter -> testCenter.getMunicipalityName().equals("Göteborg")
 						|| testCenter.getMunicipalityName().equals("Nödinge")
 						|| testCenter.getMunicipalityName().equals("Ale")
@@ -59,15 +59,18 @@ public class Alert {
 		).collect(Collectors.toList());
 
 		// Vänersborg / Trollhättan
-		List<TestCenter> openTimeSlotsVanersborgTrollhattan = mergedMaps.stream().filter(
+		List<TestCenter> openTimeSlotsVanersborgTrollhattan = mergedData.stream().filter(
 				testCenter -> testCenter.getMunicipalityName().equals("Vänersborg")
 						|| testCenter.getMunicipalityName().equals("Trollhättan")).collect(Collectors.toList());
 
 		// Gothenburg
-		List<TestCenter> openTimeSlotsGothenburg = mergedMaps.stream().filter(
+		List<TestCenter> openTimeSlotsGothenburg = mergedData.stream().filter(
 				testCenter -> testCenter.getMunicipalityName().equals("Göteborg")).collect(Collectors.toList());
 
 		// Send out emails
+
+		recipientsGbg.add("andersson.albert@gmail.com");
+
 		sendEmailGothenburg(openTimeSlotsGothenburg);
 
 		sendEmailNodingeAle(openTimeSlotsNodingeAle);

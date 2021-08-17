@@ -4,8 +4,8 @@ import java.util.List;
 
 public class ListTestCenter {
 
-	List<TestCenter> testcenters;
-	Long numberWeeks;
+	private List<TestCenter> testcenters;
+	private Long numberWeeks;
 
 	public ListTestCenter(List<TestCenter> testcenters, Long numberWeeks) {
 		this.testcenters = testcenters;

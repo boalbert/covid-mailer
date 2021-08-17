@@ -16,13 +16,12 @@ public class TestCenter {
 	public String urlContactCardText;
 	public String testtype;
 	public Long timeslots;
-	public String ageGroup;
 	public String updated;
 
 	public TestCenter() {
 	}
 
-	public TestCenter(String title, String hsaid, String municipalityName, String municipality, String urlBooking, String urlContactCard, String urlContactCardText, String testtype, Long timeslots, String ageGroup, String updated) {
+	public TestCenter(String title, String hsaid, String municipalityName, String municipality, String urlBooking, String urlContactCard, String urlContactCardText, String testtype, Long timeslots, String updated) {
 		this.title = title;
 		this.hsaid = hsaid;
 		this.municipalityName = municipalityName;
@@ -32,8 +31,14 @@ public class TestCenter {
 		this.urlContactCardText = urlContactCardText;
 		this.testtype = testtype;
 		this.timeslots = timeslots;
-		this.ageGroup = ageGroup;
 		this.updated = updated;
+	}
+
+	public TestCenter(String title, String municipalityName, String urlBooking, Long timeSlots) {
+		this.title = title;
+		this.municipalityName = municipalityName;
+		this.urlBooking = urlBooking;
+		this.timeslots = timeSlots;
 	}
 
 	public static List<TestCenter> mergeMapsAndReturnUniqueTestCenters(Map<String, TestCenter> restCenters, Map<String, TestCenter> scrapeCenters) {
@@ -43,7 +48,7 @@ public class TestCenter {
 				.collect(Collectors.toMap(
 						Map.Entry :: getKey,
 						Map.Entry :: getValue,
-						(v1, v2) -> new TestCenter(v1.getTitle(), v1.getHsaid(), v1.getMunicipalityName(), v1.getMunicipality(), v1.getUrlBooking(), v1.getUrlContactCard(), v1.getUrlContactCardText(), v1.getTesttype(), v1.getTimeslots(), v2.getAgeGroup(), v1.getUpdated())
+						(v1, v2) -> new TestCenter(v1.getTitle(), v1.getHsaid(), v1.getMunicipalityName(), v1.getMunicipality(), v1.getUrlBooking(), v1.getUrlContactCard(), v1.getUrlContactCardText(), v1.getTesttype(), v1.getTimeslots(), v1.getUpdated())
 				));
 
 		return new ArrayList<>(merged.values());
@@ -117,13 +122,6 @@ public class TestCenter {
 		return timeslots;
 	}
 
-	public String getAgeGroup() {
-		return ageGroup;
-	}
-
-	public void setAgeGroup(String ageGroup) {
-		this.ageGroup = ageGroup;
-	}
 
 	public String getUpdated() {
 		return updated;
@@ -149,7 +147,6 @@ public class TestCenter {
 				", urlContactCardText='" + urlContactCardText + '\'' +
 				", testtype='" + testtype + '\'' +
 				", timeslots=" + timeslots +
-				", ageGroup='" + ageGroup + '\'' +
 				", updated='" + updated + '\'' +
 				'}';
 	}

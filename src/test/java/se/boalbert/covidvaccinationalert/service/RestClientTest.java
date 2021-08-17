@@ -28,15 +28,15 @@ class RestClientTest {
 //
 //	@Test
 //	void allCenters() {
-//		List<TestCenter> testCenters = restClient.extractAllCenters();
+//		List<TestCenter> testCenters = restClient.convertDataFromApiCallToTestCenter();
 //
 //		assertTrue(testCenters.size() > 0);
 //	}
 //
 //	@Test
-//	void findByHsaid() {
-//		List<TestCenter> allTestCenters = restClient.extractAllCenters();
-//		List<TestCenter> hsaidCenter = restClient.findByHsaid(allTestCenters, "SE2321000131-E000000016395"); // HSAID for Scandinavium
+//	void findTestCenterByHsaid() {
+//		List<TestCenter> allTestCenters = restClient.convertDataFromApiCallToTestCenter();
+//		List<TestCenter> hsaidCenter = restClient.findTestCenterByHsaid(allTestCenters, "SE2321000131-E000000016395"); // HSAID for Scandinavium
 //		TestCenter testCenterScandinavium = hsaidCenter.get(0);
 //
 //		assertEquals(testCenterScandinavium.getTitle(), "Närhälsan Scandinavium" );
@@ -44,11 +44,11 @@ class RestClientTest {
 //	}
 //
 //	@Test
-//	void findByMunicipality() {
-//		List<TestCenter> allTestCenters = restClient.extractAllCenters();
+//	void findTestCentersByMunicipalityId() {
+//		List<TestCenter> allTestCenters = restClient.convertDataFromApiCallToTestCenter();
 //		// 1480 for Göteborg
 //		// 1487 for Vänersborg
-//		List<TestCenter> municipalityCenters = restClient.findByMunicipality(allTestCenters, "1487");
+//		List<TestCenter> municipalityCenters = restClient.findTestCentersByMunicipalityId(allTestCenters, "1487");
 //
 //		assertTrue(municipalityCenters.stream().allMatch(testCenter -> testCenter.getMunicipalityName().equals("Vänersborg")));
 //
@@ -58,8 +58,8 @@ class RestClientTest {
 //
 //	@Test
 //	void findAvailableTimeslots() {
-//		List<TestCenter> allTestCenters = restClient.extractAllCenters();
-//		List<TestCenter> availableTimeSlots = restClient.findAvailableTimeslotsByMunicipalityId(allTestCenters, "1460");
+//		List<TestCenter> allTestCenters = restClient.convertDataFromApiCallToTestCenter();
+//		List<TestCenter> availableTimeSlots = restClient.findTimeslotsByMunicipalityId(allTestCenters, "1460");
 //
 //		log.info(availableTimeSlots.toString());
 //	}
@@ -69,7 +69,7 @@ class RestClientTest {
 //
 //		HashSet<String> sentAlerts = new HashSet<>();
 //
-//		List<TestCenter> allTestCenters = restClient.extractAllCenters();
+//		List<TestCenter> allTestCenters = restClient.convertDataFromApiCallToTestCenter();
 //		List<TestCenter> avalibleTimeSlots = restClient.findAllAvailableTimeSlots(allTestCenters);
 //		int i = 0;
 //		for(TestCenter testCenter : avalibleTimeSlots) {

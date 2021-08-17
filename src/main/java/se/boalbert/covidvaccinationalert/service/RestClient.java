@@ -25,18 +25,6 @@ public class RestClient implements IRestClient {
 	private String CLIENT_SECRET;
 
 	/**
-	 * @return list of all the testcenters inside ListTestCenter
-	 */
-	@Override
-	public Map<String, TestCenter> extractAllCenters() {
-		ListTestCenter listTestCenter = getFullResponseFromApi();
-
-		return listTestCenter.getTestcenters().stream()
-				.collect(Collectors.toMap(TestCenter :: getTitle, testCenter -> testCenter));
-
-	}
-
-	/**
 	 * Send a request to the API with id and secret loaded from config
 	 *
 	 * @return the whole request mapped to ListTestCenter POJO
@@ -70,12 +58,24 @@ public class RestClient implements IRestClient {
 	}
 
 	/**
+	 * @return list of all the testcenters inside ListTestCenter
+	 */
+	@Override
+	public Map<String, TestCenter> convertDataFromApiCallToTestCenter() {
+		ListTestCenter listTestCenter = getFullResponseFromApi();
+
+		return listTestCenter.getTestcenters().stream()
+				.collect(Collectors.toMap(TestCenter :: getTitle, testCenter -> testCenter));
+
+	}
+
+	/**
 	 * @param listTestCenters list of all centers
 	 * @param hsaid           - unique identifier for each vaccination center
 	 * @return list of matching centers
 	 */
 	@Override
-	public List<TestCenter> findByHsaid(List<TestCenter> listTestCenters, String hsaid) {
+	public List<TestCenter> findTestCenterByHsaid(List<TestCenter> listTestCenters, String hsaid) {
 
 		List<TestCenter> listFilteredByHsaid = listTestCenters.stream()
 				.filter(testCenter -> testCenter.getHsaid().equals(hsaid))
@@ -98,7 +98,7 @@ public class RestClient implements IRestClient {
 	 * @return list of centers in municipality
 	 */
 	@Override
-	public List<TestCenter> findByMunicipality(List<TestCenter> listTestCenters, String municipalityId) {
+	public List<TestCenter> findTestCentersByMunicipalityId(List<TestCenter> listTestCenters, String municipalityId) {
 
 		List<TestCenter> listFilteredByMunicipality = listTestCenters.stream()
 				.filter(testCenter -> testCenter.getMunicipality().equals(municipalityId))
@@ -112,7 +112,7 @@ public class RestClient implements IRestClient {
 	}
 
 	@Override
-	public List<TestCenter> findAvailableTimeslotsByMunicipalityId(List<TestCenter> listCenters, String municipalityId) {
+	public List<TestCenter> findTimeslotsByMunicipalityId(List<TestCenter> listCenters, String municipalityId) {
 
 		return listCenters.stream()
 				.filter(testCenter -> testCenter.getTimeslots() != null)

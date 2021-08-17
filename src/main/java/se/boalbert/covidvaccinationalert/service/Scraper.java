@@ -10,68 +10,58 @@ import se.boalbert.covidvaccinationalert.model.TestCenter;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
 public class Scraper {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Scraper.class);
-	public static Long keepTrackOfTotalSlots;
-	public static String ageGroup = "Född 2003 eller tidigare";
 
-	public Map<String, TestCenter> scrapeData() {
+	public Map<String, TestCenter> scrapeBookingData() {
 
-		Map<String, TestCenter> allSlotsMap = new LinkedHashMap<>();
-
-		Long tempTotalTimeSlots = 0L;
+		Map<String, TestCenter> scrapedTestCenters = new HashMap<>();
 
 		try {
-			// Whole HTML-document
-			Document htmlDocument = Jsoup.connect("https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/").get();
-
-			// TestCenter divs
-			Elements testCenters = htmlDocument.getElementsByClass("media-body");
-
-			//	Loop over all testcenter-divs and insert data into testCenter-object
-			for (Element testCenter : testCenters) {
-				// Göteborg: Drive In Nötkärnan Slottskogen
-				String heading = testCenter.select("h3").text();
-
-				// https://formular.1177.se/etjanst/ad7ed879-138d-4cfd-ac94-83c0af422e44?externalApplication=COVID_SE2321000131-E000000016315
-				String linkHref = testCenter.select("a").first().attr("href");
-
-				// (Mer än 500 lediga tider kommande 2 veckor)
-				String openSlots = testCenter.select("span").first().text();
-
-				// Chop up text and prepare it for creation of object
-				String title = extractTestCenterTitle(heading);
-				String municipalityName = extractMunicipalityName(heading);
-				Long timeSlots = extractOpenTimeslots(openSlots);
-
-				// Populate object
-				TestCenter newSlot = new TestCenter();
-
-				newSlot.setTitle(title);
-				newSlot.setMunicipalityName(municipalityName);
-				newSlot.setUrlBooking(linkHref);
-				newSlot.setTimeslots(timeSlots);
-				newSlot.setAgeGroup(ageGroup);
-
-				tempTotalTimeSlots += timeSlots;
-
-				allSlotsMap.put(extractTestCenterTitle(heading), newSlot);
-			}
-
-			keepTrackOfTotalSlots = tempTotalTimeSlots;
-			log.info(">>> Scraped info not updated. Returning empty Map");
-			return new HashMap<>();
+			Document htmlDocument = loadBookingWebsite();
+			Elements testCenterDivs = findTestCenterDivs(htmlDocument);
+			loopOverElementsAndInsertIntoHashMap(scrapedTestCenters, testCenterDivs);
 
 		} catch (IOException ex) {
 			log.error(">>> Error parsing document when scraping...");
 			ex.printStackTrace();
 		}
-		return allSlotsMap;
+		return scrapedTestCenters;
+	}
+
+	private Document loadBookingWebsite() throws IOException {
+		return Jsoup.connect("https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/").get();
+	}
+
+	private Elements findTestCenterDivs(Document htmlDocument) {
+		return htmlDocument.getElementsByClass("media-body");
+	}
+
+	private void loopOverElementsAndInsertIntoHashMap(Map<String, TestCenter> scrapedTestCenters, Elements testCenterDivs) {
+		for (Element testCenter : testCenterDivs) {
+			// Göteborg: Drive In Nötkärnan Slottskogen
+			String heading = testCenter.select("h3").text();
+
+			// https://formular.1177.se/etjanst/ad7ed879-138d-4cfd-ac94-83c0af422e44?externalApplication=COVID_SE2321000131-E000000016315
+			String bookingLink = testCenter.select("a").first().attr("href");
+
+			// (Mer än 500 lediga tider kommande 2 veckor)
+			String availableSlots = testCenter.select("span").first().text();
+
+			// Chop up text and prepare it for creation of object
+			String title = extractTestCenterTitle(heading);
+			String municipalityName = extractMunicipalityName(heading);
+			Long timeSlots = extractAvailableTimeSlots(availableSlots);
+
+			// Create Object object
+			TestCenter newTestCenter = new TestCenter(title, municipalityName, bookingLink, timeSlots);
+
+			insertTestCenters(scrapedTestCenters, heading, newTestCenter);
+		}
 	}
 
 	public String extractTestCenterTitle(String heading) {
@@ -84,7 +74,7 @@ public class Scraper {
 		return splitHeading[0].trim();
 	}
 
-	public Long extractOpenTimeslots(String openSlotsText) {
+	public Long extractAvailableTimeSlots(String openSlotsText) {
 		// Split string to:
 		// - (Mer än 500
 		// - lediga tider kommande 2 veckor)"
@@ -93,5 +83,9 @@ public class Scraper {
 		// Replace everything that is not a number with "", i.e nothing
 		// Returns "500"
 		return Long.valueOf(splitAtWord[0].replaceAll("[^\\d]", ""));
+	}
+
+	private void insertTestCenters(Map<String, TestCenter> allSlots, String heading, TestCenter newTestCenter) {
+		allSlots.put(extractTestCenterTitle(heading), newTestCenter);
 	}
 }
