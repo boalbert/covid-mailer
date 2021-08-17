@@ -111,11 +111,6 @@ public class RestClient implements IRestClient {
 		return listFilteredByMunicipality;
 	}
 
-	/**
-	 * @param listCenters
-	 * @param municipalityId
-	 * @return
-	 */
 	@Override
 	public List<TestCenter> findAvailableTimeslotsByMunicipalityId(List<TestCenter> listCenters, String municipalityId) {
 

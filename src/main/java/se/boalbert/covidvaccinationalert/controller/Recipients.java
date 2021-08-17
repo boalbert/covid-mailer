@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
 
 @RestController
 public class Recipients {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Recipients.class);
+
+	public static List<Recipients> recipients = new ArrayList<>();
 
 	public static Collection<String> recipientsGbg = new ArrayList<>();
 	public static Collection<String> recipientsNodingeAle = new ArrayList<>();
@@ -22,6 +26,9 @@ public class Recipients {
 
 	@GetMapping("/recipients/{municipality}/")
 	public Collection<String> getRecipients(@PathVariable String municipality) {
+
+
+
 		log.info(">>> GET /recipients/" + municipality);
 		if (municipality.equalsIgnoreCase("gbg")) {
 			return recipientsGbg;

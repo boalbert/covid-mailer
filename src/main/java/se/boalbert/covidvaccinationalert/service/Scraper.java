@@ -33,11 +33,6 @@ public class Scraper {
 			// TestCenter divs
 			Elements testCenters = htmlDocument.getElementsByClass("media-body");
 
-//			// "Här finns mottagningar som har lediga tider för webbokning just nu. Sedan 8:e juni kan du som är född 1976 eller tidigare samt du i riskgrupp över 18 år boka tid."
-//			String agesText = htmlDocument.getElementsContainingOwnText("född").text();
-
-//			ageGroup = extractAgeGroup(agesText);
-
 			//	Loop over all testcenter-divs and insert data into testCenter-object
 			for (Element testCenter : testCenters) {
 				// Göteborg: Drive In Nötkärnan Slottskogen
@@ -63,33 +58,20 @@ public class Scraper {
 				newSlot.setTimeslots(timeSlots);
 				newSlot.setAgeGroup(ageGroup);
 
-				tempTotalTimeSlots = tempTotalTimeSlots + timeSlots;
+				tempTotalTimeSlots += timeSlots;
 
 				allSlotsMap.put(extractTestCenterTitle(heading), newSlot);
 			}
 
-			if (!tempTotalTimeSlots.equals(keepTrackOfTotalSlots)) {
-				keepTrackOfTotalSlots = tempTotalTimeSlots;
-				log.info(">>> Scraped {} testCenters", allSlotsMap.size());
-				return allSlotsMap;
-			} else {
-				keepTrackOfTotalSlots = tempTotalTimeSlots;
-				log.info(">>> Scraped info not updated. Returning empty Map");
-				return new HashMap<>();
-			}
+			keepTrackOfTotalSlots = tempTotalTimeSlots;
+			log.info(">>> Scraped info not updated. Returning empty Map");
+			return new HashMap<>();
 
 		} catch (IOException ex) {
 			log.error(">>> Error parsing document when scraping...");
 			ex.printStackTrace();
 		}
 		return allSlotsMap;
-	}
-
-	public String extractAgeGroup(String ageGroup) {
-		String[] splitAtFodd = ageGroup.split("född");
-		String[] splitAtSamt = splitAtFodd[1].split("samt");
-
-		return "Född " + splitAtSamt[0].trim() + ".";
 	}
 
 	public String extractTestCenterTitle(String heading) {
@@ -111,10 +93,5 @@ public class Scraper {
 		// Replace everything that is not a number with "", i.e nothing
 		// Returns "500"
 		return Long.valueOf(splitAtWord[0].replaceAll("[^\\d]", ""));
-	}
-
-	public String extractOnlyDate(String updated) {
-		String[] splitAtColon = updated.split(":");
-		return splitAtColon[1].trim() + ":" + splitAtColon[2].trim();
 	}
 }
