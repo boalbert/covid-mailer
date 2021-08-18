@@ -70,14 +70,14 @@ public class RestClient implements IRestClient {
 	}
 
 	/**
-	 * @param listTestCenters list of all centers
+	 * @param allTestCenters list of all centers
 	 * @param hsaid           - unique identifier for each vaccination center
 	 * @return list of matching centers
 	 */
 	@Override
-	public List<TestCenter> findTestCenterByHsaid(List<TestCenter> listTestCenters, String hsaid) {
+	public List<TestCenter> findTestCenterByHsaid(List<TestCenter> allTestCenters, String hsaid) {
 
-		List<TestCenter> listFilteredByHsaid = listTestCenters.stream()
+		List<TestCenter> listFilteredByHsaid = allTestCenters.stream()
 				.filter(testCenter -> testCenter.getHsaid().equals(hsaid))
 				.collect(Collectors.toList());
 
@@ -93,14 +93,14 @@ public class RestClient implements IRestClient {
 	 * Göteborg = 1480
 	 * Vänersborg = 1487
 	 *
-	 * @param listTestCenters list of all centers
+	 * @param allTestCenters list of all centers
 	 * @param municipalityId  id of municipalitu (kommun)
 	 * @return list of centers in municipality
 	 */
 	@Override
-	public List<TestCenter> findTestCentersByMunicipalityId(List<TestCenter> listTestCenters, String municipalityId) {
+	public List<TestCenter> findTestCentersByMunicipalityId(List<TestCenter> allTestCenters, String municipalityId) {
 
-		List<TestCenter> listFilteredByMunicipality = listTestCenters.stream()
+		List<TestCenter> listFilteredByMunicipality = allTestCenters.stream()
 				.filter(testCenter -> testCenter.getMunicipality().equals(municipalityId))
 				.collect(Collectors.toList());
 
@@ -112,9 +112,9 @@ public class RestClient implements IRestClient {
 	}
 
 	@Override
-	public List<TestCenter> findTimeslotsByMunicipalityId(List<TestCenter> listCenters, String municipalityId) {
+	public List<TestCenter> findTimeslotsByMunicipalityId(List<TestCenter> allTestCenters, String municipalityId) {
 
-		return listCenters.stream()
+		return allTestCenters.stream()
 				.filter(testCenter -> testCenter.getTimeslots() != null)
 				.filter(testCenter -> testCenter.getTimeslots() != 0)
 				.filter(testCenter -> testCenter.getMunicipality().equals(municipalityId))

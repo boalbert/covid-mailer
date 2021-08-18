@@ -16,16 +16,14 @@ import java.util.Map;
 public class Scraper {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Scraper.class);
+	private final Map<String, TestCenter> scrapedTestCenters = new HashMap<>();
 
 	public Map<String, TestCenter> scrapeBookingData() {
-
-		String vaccinationWebsiteUrl = "https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/";
-		Map<String, TestCenter> scrapedTestCenters = new HashMap<>();
-
 		try {
+			String vaccinationWebsiteUrl = "https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/";
 			Document htmlDocument = loadWebsite(vaccinationWebsiteUrl);
 			Elements testCenterDivs = findTestCenterDivs(htmlDocument);
-			loopOverDivsAndSaveTestCenter(scrapedTestCenters, testCenterDivs);
+			loopOverDivsAndSaveTestCenter(testCenterDivs);
 
 		} catch (IOException ex) {
 			log.error(">>> Error parsing document when scraping...");
@@ -42,7 +40,7 @@ public class Scraper {
 		return htmlDocument.getElementsByClass("media-body");
 	}
 
-	private void loopOverDivsAndSaveTestCenter(Map<String, TestCenter> scrapedTestCenters, Elements testCenterDivs) {
+	private void loopOverDivsAndSaveTestCenter(Elements testCenterDivs) {
 		for (Element testCenter : testCenterDivs) {
 			// Göteborg: Drive In Nötkärnan Slottskogen
 			String heading = testCenter.select("h3").text();
@@ -61,7 +59,7 @@ public class Scraper {
 			// Create Object object
 			TestCenter newTestCenter = new TestCenter(title, municipalityName, bookingLink, timeSlots);
 
-			insertTestCenters(scrapedTestCenters, heading, newTestCenter);
+			insertTestCenters(heading, newTestCenter);
 		}
 	}
 
@@ -86,7 +84,7 @@ public class Scraper {
 		return Long.valueOf(splitAtWord[0].replaceAll("[^\\d]", ""));
 	}
 
-	private void insertTestCenters(Map<String, TestCenter> allSlots, String heading, TestCenter newTestCenter) {
-		allSlots.put(extractTestCenterTitle(heading), newTestCenter);
+	private void insertTestCenters(String heading, TestCenter newTestCenter) {
+		scrapedTestCenters.put(extractTestCenterTitle(heading), newTestCenter);
 	}
 }
