@@ -43,35 +43,36 @@ public class Alert {
 		iterateRecipientsAndSendOutTimeSlotsMatchingMunicipality(mergedData);
 	}
 
-	private List<TestCenter> mergeScrapedAndRestAPIData(Map<String, TestCenter> restData, Map<String, TestCenter> scrapeData) {
-		return TestCenter.mergeMapsAndReturnUniqueTestCenters(restData, scrapeData);
+	private Map<String, TestCenter> getUpdatedDataFromRestAPI() {
+		return restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.convertDataFromApiCallToTestCenter()));
 	}
 
 	private Map<String, TestCenter> getScrapedData() {
 		return scraper.scrapeBookingData();
 	}
 
-	private Map<String, TestCenter> getUpdatedDataFromRestAPI() {
-		return restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.convertDataFromApiCallToTestCenter()));
+	private List<TestCenter> mergeScrapedAndRestAPIData(Map<String, TestCenter> restData, Map<String, TestCenter> scrapeData) {
+		return TestCenter.mergeMapsAndReturnUniqueTestCenters(restData, scrapeData);
 	}
 
 	private void iterateRecipientsAndSendOutTimeSlotsMatchingMunicipality(List<TestCenter> mergedData) {
 		for (Recipient recipient : recipients) {
 
 			List<TestCenter> matchingCenters = filterCentersByMunicipality(mergedData, recipient);
-
 			sendMatchingTestCenterToRecipient(recipient, matchingCenters);
-
 		}
 	}
 
 	private List<TestCenter> filterCentersByMunicipality(List<TestCenter> mergedData, Recipient recipient) {
-		List<TestCenter> myCenters = mergedData.stream().filter(t -> t.getMunicipalityName().equals(recipient.municipality())).collect(Collectors.toList());
-		return myCenters;
+		return mergedData.stream().
+				filter(t -> t.getMunicipalityName()
+					.equals(recipient.municipality()))
+					.collect(Collectors.toList());
 	}
 
-	private void sendMatchingTestCenterToRecipient(Recipient recipient, List<TestCenter> myCenters) {
-		mailClient.sendEmailToRecipient(mailClient.generateEmailToRecipient(myCenters, recipient.email(), recipient.municipality()));
+	private void sendMatchingTestCenterToRecipient(Recipient recipient, List<TestCenter> matchingCenters) {
+		if (matchingCenters.size() > 0)
+			mailClient.sendEmailToRecipient(mailClient.generateEmailToRecipient(matchingCenters, recipient));
 	}
 
 }

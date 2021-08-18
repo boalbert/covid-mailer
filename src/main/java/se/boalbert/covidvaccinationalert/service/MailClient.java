@@ -9,6 +9,7 @@ import org.simplejavamail.mailer.MailerBuilder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import se.boalbert.covidvaccinationalert.model.Recipient;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 
 import java.util.List;
@@ -36,11 +37,10 @@ public class MailClient {
 	@Value("${TRANSPORT_STRATEGY}")
 	private String TRANSPORT_STRATEGY;
 
-	public Email generateEmailToRecipient(List<TestCenter> openTimeSlots, String recipient, String municipality) {
-			String content = createEmailContent(openTimeSlots, municipality);
-			Email email = setupEmailBuilder(content, municipality, recipient);
+	public Email generateEmailToRecipient(List<TestCenter> openTimeSlots, Recipient recipient) {
+		String content = createEmailContent(openTimeSlots, recipient.municipality());
 
-			return email;
+		return setupEmailBuilder(content, recipient);
 	}
 
 	public String createEmailContent(List<TestCenter> testCenterList, String region) {
@@ -53,24 +53,15 @@ public class MailClient {
 		return String.valueOf(stringBuilder);
 	}
 
-	public Email setupEmailBuilder(String content, String subject, String recipient) {
+	public Email setupEmailBuilder(String content, Recipient recipient) {
 
 		//TODO Update email in from-field
 		return EmailBuilder.startingBlank()
 				.from("From", FROM_EMAIL)
-				.to("To", recipient)
-				.withSubject("Ledig Vaccinationstid: " + subject)
+				.to("To", recipient.email())
+				.withSubject("Ledig Vaccinationstid: " + recipient.municipality())
 				.withHTMLText(content)
 				.buildEmail();
-	}
-
-	public void sendEmailToRecipient(Email email) {
-		try {
-			log.info("Sending Email: " + email.getRecipients());
-			buildEmail().sendMail(email);
-		} catch (MailException e) {
-			e.printStackTrace();
-		}
 	}
 
 	private void appendEmailHeader(String region, StringBuilder stringBuilder) {
@@ -109,30 +100,21 @@ public class MailClient {
 		stringBuilder.append(footer);
 	}
 
+	public void sendEmailToRecipient(Email email) {
+		try {
+			log.info("Sending Email: " + email.getRecipients());
+			buildEmail().sendMail(email);
+		} catch (MailException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private Mailer buildEmail() {
 		return MailerBuilder
 				.withSMTPServer(SMTP_HOST, SMTP_PORT, EMAIL_USERNAME, EMAIL_PASSWORD)
 				.withTransportStrategy(TransportStrategy.valueOf(TRANSPORT_STRATEGY))
 				.buildMailer();
 	}
-
-//	public void sendEmailToRecipientsBasedOnMunicipality(List<TestCenter> availableInMunicipality, String municipality, List<Recipient> allRecipients) {
-//
-//		if (availableInMunicipality.size() > 0 && allRecipients.size() > 0) {
-//
-//			log.info(">>> {} timeslots found in {}, sending alert to {} recipients.", availableInMunicipality.size(), municipality, allRecipients.size());
-//
-//			String content = createEmailContent(availableInMunicipality, municipality);
-//
-//			Email email = setupEmailBuilder(allRecipients, content, municipality);
-//
-//			sendEmailToRecipientList(email);
-//
-//		} else {
-//			log.info(">>> {} new timeslots found for: {}", availableInMunicipality.size(), municipality);
-//			log.info(">>> {} recipients for {}", allRecipients.size(), municipality);
-//		}
-//	}
 }
 
 
