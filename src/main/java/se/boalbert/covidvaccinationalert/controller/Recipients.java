@@ -15,7 +15,7 @@ public class Recipients {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Recipients.class);
 
-	public static List<Recipient> recipients = new ArrayList<>();
+	public static final List<Recipient> recipients = new ArrayList<>();
 
 	@GetMapping("/recipients/")
 	public List<Recipient> getRecipientList() {

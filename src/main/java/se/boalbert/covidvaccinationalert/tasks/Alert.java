@@ -1,9 +1,11 @@
 package se.boalbert.covidvaccinationalert.tasks;
 
+import org.simplejavamail.api.email.Email;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import se.boalbert.covidvaccinationalert.model.Message;
 import se.boalbert.covidvaccinationalert.model.Recipient;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 import se.boalbert.covidvaccinationalert.service.IRestClient;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static se.boalbert.covidvaccinationalert.controller.Recipients.recipients;
+import static se.boalbert.covidvaccinationalert.model.Message.createMessage;
 
 @Configuration
 @EnableScheduling
@@ -36,26 +39,18 @@ public class Alert {
 	public void runTask() {
 		log.info(">>> runTask() called...");
 
-		Map<String, TestCenter> restData = getUpdatedDataFromRestAPI();
-		Map<String, TestCenter> scrapeData = getScrapedData();
-		List<TestCenter> mergedData = mergeScrapedAndRestAPIData(restData, scrapeData);
+		List<TestCenter> mergedData = mergeTestCenterLists();
 
-		iterateRecipientsAndSendOutTimeSlotsMatchingMunicipality(mergedData);
+		sendOpenSlotsToRecipients(mergedData);
 	}
 
-	private Map<String, TestCenter> getUpdatedDataFromRestAPI() {
-		return restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.convertDataFromApiCallToTestCenter()));
+	private List<TestCenter> mergeTestCenterLists() {
+		Map<String, TestCenter> restData = restClient.filterCentersByUpdated(restClient.findAllAvailableTimeSlots(restClient.convertDataFromApiCallToTestCenter()));
+		Map<String, TestCenter> scrapeData = scraper.scrapeBookingData();
+		return mergeScrapedAndRestAPIData(restData, scrapeData);
 	}
 
-	private Map<String, TestCenter> getScrapedData() {
-		return scraper.scrapeBookingData();
-	}
-
-	private List<TestCenter> mergeScrapedAndRestAPIData(Map<String, TestCenter> restData, Map<String, TestCenter> scrapeData) {
-		return TestCenter.mergeMapsAndReturnUniqueTestCenters(restData, scrapeData);
-	}
-
-	private void iterateRecipientsAndSendOutTimeSlotsMatchingMunicipality(List<TestCenter> mergedData) {
+	private void sendOpenSlotsToRecipients(List<TestCenter> mergedData) {
 		for (Recipient recipient : recipients) {
 
 			List<TestCenter> matchingCenters = filterCentersByMunicipality(mergedData, recipient);
@@ -63,16 +58,23 @@ public class Alert {
 		}
 	}
 
+	private List<TestCenter> mergeScrapedAndRestAPIData(Map<String, TestCenter> restData, Map<String, TestCenter> scrapeData) {
+		return TestCenter.mergeMapsAndReturnUniqueTestCenters(restData, scrapeData);
+	}
+
 	private List<TestCenter> filterCentersByMunicipality(List<TestCenter> mergedData, Recipient recipient) {
 		return mergedData.stream().
 				filter(t -> t.getMunicipalityName()
-					.equals(recipient.municipality()))
-					.collect(Collectors.toList());
+						.equals(recipient.municipality()))
+				.collect(Collectors.toList());
 	}
 
 	private void sendMatchingTestCenterToRecipient(Recipient recipient, List<TestCenter> matchingCenters) {
-		if (matchingCenters.size() > 0)
-			mailClient.sendEmailToRecipient(mailClient.generateEmailToRecipient(matchingCenters, recipient));
+		if (matchingCenters.size() > 0) {
+			Message message = createMessage(matchingCenters, recipient);
+			Email email = mailClient.setupEmailBuilder(message);
+			mailClient.sendEmailToRecipient(email);
+		}
 	}
 
 }

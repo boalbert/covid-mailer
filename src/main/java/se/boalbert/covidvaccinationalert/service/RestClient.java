@@ -9,7 +9,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import se.boalbert.covidvaccinationalert.model.ListTestCenter;
 import se.boalbert.covidvaccinationalert.model.TestCenter;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -17,6 +20,7 @@ public class RestClient implements IRestClient {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(RestClient.class);
 	private final HashSet<String> oldTimeSlots = new LinkedHashSet<>();
+
 	@Value("${API_URI}")
 	private String API_URI;
 	@Value("${CLIENT_ID}")
@@ -29,20 +33,12 @@ public class RestClient implements IRestClient {
 	 *
 	 * @return the whole request mapped to ListTestCenter POJO
 	 */
-	@Override
-	public ListTestCenter getFullResponseFromApi() {
+	private ListTestCenter getFullResponseFromApi() {
 
 		WebClient webClient = WebClient.create();
 
 		try {
-			return webClient.get().uri(API_URI)
-					.headers(httpHeaders -> {
-						httpHeaders.set("client_id", CLIENT_ID);
-						httpHeaders.set("client_secret", CLIENT_SECRET);
-					})
-					.retrieve()
-					.bodyToMono(ListTestCenter.class)
-					.block();
+			return callApi(webClient);
 
 		} catch (WebClientResponseException ex) {
 			log.error("Error - Response Code: {} ", ex.getRawStatusCode());
@@ -57,6 +53,17 @@ public class RestClient implements IRestClient {
 		}
 	}
 
+	private ListTestCenter callApi(WebClient webClient) {
+		return webClient.get().uri(API_URI)
+				.headers(httpHeaders -> {
+					httpHeaders.set("client_id", CLIENT_ID);
+					httpHeaders.set("client_secret", CLIENT_SECRET);
+				})
+				.retrieve()
+				.bodyToMono(ListTestCenter.class)
+				.block();
+	}
+
 	/**
 	 * @return list of all the testcenters inside ListTestCenter
 	 */
@@ -67,58 +74,6 @@ public class RestClient implements IRestClient {
 		return listTestCenter.getTestcenters().stream()
 				.collect(Collectors.toMap(TestCenter :: getTitle, testCenter -> testCenter));
 
-	}
-
-	/**
-	 * @param allTestCenters list of all centers
-	 * @param hsaid           - unique identifier for each vaccination center
-	 * @return list of matching centers
-	 */
-	@Override
-	public List<TestCenter> findTestCenterByHsaid(List<TestCenter> allTestCenters, String hsaid) {
-
-		List<TestCenter> listFilteredByHsaid = allTestCenters.stream()
-				.filter(testCenter -> testCenter.getHsaid().equals(hsaid))
-				.collect(Collectors.toList());
-
-		if (listFilteredByHsaid.size() > 0) {
-			log.info("Matching Center: " + listFilteredByHsaid);
-		}
-
-		return listFilteredByHsaid;
-	}
-
-	/**
-	 * Returns a list of centers matching municipality
-	 * Göteborg = 1480
-	 * Vänersborg = 1487
-	 *
-	 * @param allTestCenters list of all centers
-	 * @param municipalityId  id of municipalitu (kommun)
-	 * @return list of centers in municipality
-	 */
-	@Override
-	public List<TestCenter> findTestCentersByMunicipalityId(List<TestCenter> allTestCenters, String municipalityId) {
-
-		List<TestCenter> listFilteredByMunicipality = allTestCenters.stream()
-				.filter(testCenter -> testCenter.getMunicipality().equals(municipalityId))
-				.collect(Collectors.toList());
-
-		if (listFilteredByMunicipality.size() > 0) {
-			log.info("Matching Centers in Municipality: " + listFilteredByMunicipality);
-		}
-
-		return listFilteredByMunicipality;
-	}
-
-	@Override
-	public List<TestCenter> findTimeslotsByMunicipalityId(List<TestCenter> allTestCenters, String municipalityId) {
-
-		return allTestCenters.stream()
-				.filter(testCenter -> testCenter.getTimeslots() != null)
-				.filter(testCenter -> testCenter.getTimeslots() != 0)
-				.filter(testCenter -> testCenter.getMunicipality().equals(municipalityId))
-				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -135,7 +90,6 @@ public class RestClient implements IRestClient {
 	 * If it fails (not unique) alert it not sent.
 	 * If it succeds it adds it to 'SentAlert' HashSet and then the timeslot will be sent out
 	 *
-	 * @param testCenterList
 	 * @return list if new timeSlots
 	 */
 
@@ -144,18 +98,19 @@ public class RestClient implements IRestClient {
 
 		Map<String, TestCenter> newTimeSlots = new LinkedHashMap<>();
 
-		String timeSlotSignature = "";
-
 		for (Map.Entry<String, TestCenter> testCenter : testCenterList.entrySet()) {
 
-			timeSlotSignature = testCenter.getValue().getHsaid() + testCenter.getValue().getUpdated();
+			String newTimeSlotSignature = testCenter.getValue().getHsaid() + testCenter.getValue().getUpdated();
 
-
-			if (oldTimeSlots.add(timeSlotSignature)) {
-				oldTimeSlots.add(timeSlotSignature);
-				newTimeSlots.put(testCenter.getValue().getTitle(), testCenter.getValue());
+			if (oldTimeSlots.add(newTimeSlotSignature)) {
+				markTimeSlotAsSentToRecipient(newTimeSlots, newTimeSlotSignature, testCenter);
 			}
 		}
 		return newTimeSlots;
+	}
+
+	private void markTimeSlotAsSentToRecipient(Map<String, TestCenter> newTimeSlots, String timeSlotSignature, Map.Entry<String, TestCenter> testCenter) {
+		oldTimeSlots.add(timeSlotSignature);
+		newTimeSlots.put(testCenter.getValue().getTitle(), testCenter.getValue());
 	}
 }

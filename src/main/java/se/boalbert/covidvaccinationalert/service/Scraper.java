@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Long.valueOf;
+
 @Component
 public class Scraper {
 
@@ -20,16 +22,19 @@ public class Scraper {
 
 	public Map<String, TestCenter> scrapeBookingData() {
 		try {
-			String vaccinationWebsiteUrl = "https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/";
-			Document htmlDocument = loadWebsite(vaccinationWebsiteUrl);
-			Elements testCenterDivs = findTestCenterDivs(htmlDocument);
-			loopOverDivsAndSaveTestCenter(testCenterDivs);
-
+			addScrapedDataToTestCenterList();
 		} catch (IOException ex) {
 			log.error(">>> Error parsing document when scraping...");
 			ex.printStackTrace();
 		}
 		return scrapedTestCenters;
+	}
+
+	private void addScrapedDataToTestCenterList() throws IOException {
+		String vaccinationWebsiteUrl = "https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/";
+		Document htmlDocument = loadWebsite(vaccinationWebsiteUrl);
+		Elements testCenterDivs = findTestCenterDivs(htmlDocument);
+		loopOverDivsAndSaveTestCenter(testCenterDivs);
 	}
 
 	private Document loadWebsite(String url) throws IOException {
@@ -74,14 +79,9 @@ public class Scraper {
 	}
 
 	public Long extractAvailableTimeSlots(String openSlotsText) {
-		// Split string to:
-		// - (Mer än 500
-		// - lediga tider kommande 2 veckor)"
-		String[] splitAtWord = openSlotsText.split("lediga");
-		// Take first part of the String, "(Mer än 500"
-		// Replace everything that is not a number with "", i.e nothing
-		// Returns "500"
-		return Long.valueOf(splitAtWord[0].replaceAll("[^\\d]", ""));
+		String[] splitSentence = openSlotsText.split("lediga");
+
+		return valueOf(splitSentence[0].replaceAll("[^\\d]", ""));
 	}
 
 	private void insertTestCenters(String heading, TestCenter newTestCenter) {
