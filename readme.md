@@ -6,6 +6,11 @@ intervall.
 ## Om
 
 * Hämtar lediga tider för Covid-vaccin från Västra Götalands öppna API.
+  * Innehåller inte alla lediga tider, men aktuell data
+* Scrapar regionens samlingssida för lediga tider
+  * Innehåller fler aktörer men inte lika aktuell data som API
+  * https://www.vgregion.se/ov/vaccinationstider/bokningsbara-tider/
+* Sammanfogar data från ovan API och scrapad hemsida
 * Mailar ut lediga tider till valda adresser
 * Kontrollerar så att det inte skickas fler mail för samma tid
 * Lagrar mottagare och skickade notiser i minnet
@@ -24,7 +29,7 @@ intervall.
 
 ## Exempel
 
-Exempel på e-post som skickas ut.
+E-post som skickas ut.
 
 ![](readme.assets/exempel.png)
 
@@ -55,10 +60,7 @@ TRANSPORT_STRATEGY= 'SMTP, SMTP_TLS, etc'
 ## Resurser
 
 * API: https://eu1.anypoint.mulesoft.com/exchange/portals/vastra-gotalandsregionen/7022b556-013d-4fc9-966c-298db3fc6a46/e-crm-scheduling-public/
-
 * Tips från VGR: https://vgrblogg.se/utveckling/2021/05/27/hjalp-vgr-testa-vart-api-med-oppna-vaccintider/
-
 * Gmail-inställningar: https://www.simplejavamail.org/features.html#section-gmail
-
 * E-post test/sandbox - under utveckling: https://mailtrap.io/
 
