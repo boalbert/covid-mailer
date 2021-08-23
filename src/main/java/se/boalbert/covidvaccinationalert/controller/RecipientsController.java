@@ -6,36 +6,32 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import se.boalbert.covidvaccinationalert.model.Recipient;
+import se.boalbert.covidvaccinationalert.service.IRecipientsService;
+import se.boalbert.covidvaccinationalert.service.RecipientsService;
 
-import java.util.ArrayList;
 import java.util.List;
+
 
 @RestController
 public class Recipients {
 
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Recipients.class);
 
-	public static final List<Recipient> recipients = new ArrayList<>();
+	private final IRecipientsService recipientsService;
+
+	public Recipients(RecipientsService recipientsService) {
+		this.recipientsService = recipientsService;
+	}
 
 	@GetMapping("/recipients/")
-	public List<Recipient> getRecipientList() {
+	public List<Recipient> getRecipients() {
 		log.info("> GET /recipients/" + " called.");
-		log.info(recipients.toString());
-		return recipients;
+		return recipientsService.get();
 	}
 
 	@PostMapping("/recipients/")
-	public String postRecipientObject(@RequestBody Recipient recipient) {
-
-		log.info("POST /recipients/ called.");
-
-		if (!recipients.contains(recipient)) {
-			recipients.add(recipient);
-			log.info(">> " + recipient + " added to collection.");
-			return recipient.toString();
-		} else {
-			log.info(">> " + recipient + " already exists, not added.");
-			return recipient + " already exists.";
-		}
+	public boolean postRecipient(@RequestBody Recipient recipient) {
+		log.info("> POST /recipients/ called.");
+		return recipientsService.add(recipient);
 	}
 }
