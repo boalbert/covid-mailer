@@ -41,7 +41,7 @@ public class Alert {
 		this.scraper = scraper;
 	}
 
-	@Scheduled(fixedRate = SEND_ALERT_INTERVAL, initialDelay = 5000) // 15 min
+	@Scheduled(fixedRate = SEND_ALERT_INTERVAL, initialDelay = 5000)
 	public void runTask() {
 		log.info(">>> Fetching TestCenters and mailing recipients...");
 

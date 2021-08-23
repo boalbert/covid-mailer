@@ -1,21 +1,30 @@
 # Covid-Booking-Mailer
 
-Underlättar bokning av vaccin-tid i Västra Götaland. Hämtar lediga vaccinationstider och mailar ut enligt satt cron-intervall.
-
-Enkelt att justera vilken kommun eller vilka mottagningar man vill få notiser om. 
+Underlättar bokning av vaccin-tid i Västra Götaland. Hämtar lediga vaccinationstider och mailar ut enligt satt
+intervall.
 
 ## Om
 
 * Hämtar lediga tider för Covid-vaccin från Västra Götalands öppna API.
 * Mailar ut lediga tider till valda adresser
 * Kontrollerar så att det inte skickas fler mail för samma tid
-* REST Endpoint för att ta bort och lägga till nya mottagare
 * Lagrar mottagare och skickade notiser i minnet
-* ~~Twittrar ut nya tider - kommer flyttas till ett separat projekt~~
+* Endpoint för att ta bort och lägga till nya mottagare
+    * `GET /recipients/`
+    * `POST /recipients/`
+        * {
+          "email": "user@email.com",
+          "municipality": "Göteborg"
+          }
+    * `DELETE /recipients/`
+        * {
+          "email": "user@email.com",
+          "municipality": "Uddevalla"
+          }
 
 ## Exempel
 
-Exempel på e-post som skickas ut (under testning, ej filtrerat på endast Göteborg). 
+Exempel på e-post som skickas ut.
 
 ![](readme.assets/exempel.png)
 
@@ -40,8 +49,8 @@ TRANSPORT_STRATEGY= 'SMTP, SMTP_TLS, etc'
 
 ## Verktyg
 
+* Spring (WebFlux, Web)
 * SimpleJavaMail - https://www.simplejavamail.org
-* ~~Twitter4j - https://twitter4j.org~~
 
 ## Resurser
 
@@ -51,5 +60,5 @@ TRANSPORT_STRATEGY= 'SMTP, SMTP_TLS, etc'
 
 * Gmail-inställningar: https://www.simplejavamail.org/features.html#section-gmail
 
-* E-post test/sandbox - under testning: https://mailtrap.io/
+* E-post test/sandbox - under utveckling: https://mailtrap.io/
 

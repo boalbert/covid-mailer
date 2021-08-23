@@ -27,4 +27,13 @@ public class RecipientsService {
 		log.info("Failed to add, {} already exists.", recipient.toString());
 		return false;
 	}
+
+	public boolean remove(Recipient recipient) {
+		if (recipients.contains(recipient)) {
+			log.info("Recipient removed: {}", recipient.toString());
+			return recipients.remove(recipient);
+		}
+		log.info("Failed to remove {}, not found.", recipient.toString());
+		return false;
+	}
 }
