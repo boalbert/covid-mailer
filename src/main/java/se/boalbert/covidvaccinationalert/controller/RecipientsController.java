@@ -6,20 +6,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import se.boalbert.covidvaccinationalert.model.Recipient;
-import se.boalbert.covidvaccinationalert.service.IRecipientsService;
 import se.boalbert.covidvaccinationalert.service.RecipientsService;
 
 import java.util.List;
 
 
 @RestController
-public class Recipients {
+public class RecipientsController {
 
-	private static final Logger log = org.slf4j.LoggerFactory.getLogger(Recipients.class);
+	private static final Logger log = org.slf4j.LoggerFactory.getLogger(RecipientsController.class);
 
-	private final IRecipientsService recipientsService;
+	private final RecipientsService recipientsService;
 
-	public Recipients(RecipientsService recipientsService) {
+	public RecipientsController(RecipientsService recipientsService) {
 		this.recipientsService = recipientsService;
 	}
 

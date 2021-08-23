@@ -1,11 +1,5 @@
 package se.boalbert.covidvaccinationalert.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class TestCenter {
 	public String title;
 	public String hsaid;
@@ -41,82 +35,45 @@ public class TestCenter {
 		this.timeslots = timeSlots;
 	}
 
-	public static List<TestCenter> mergeMapsAndReturnUniqueTestCenters(Map<String, TestCenter> restCenters, Map<String, TestCenter> scrapeCenters) {
-
-		Map<String, TestCenter> merged = Stream.of(restCenters, scrapeCenters)
-				.flatMap(map -> map.entrySet().stream())
-				.collect(Collectors.toMap(
-						Map.Entry :: getKey,
-						Map.Entry :: getValue,
-						(v1, v2) -> new TestCenter(v1.getTitle(), v1.getHsaid(), v1.getMunicipalityName(), v1.getMunicipality(), v1.getUrlBooking(), v1.getUrlContactCard(), v1.getUrlContactCardText(), v1.getTesttype(), v1.getTimeslots(), v1.getUpdated())
-				));
-
-		return new ArrayList<>(merged.values());
-	}
-
-	public String getTitle() {
+	public String title() {
 		return title;
 	}
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
 
-	public String getHsaid() {
+	public String hsaid() {
 		return hsaid;
 	}
 
-	public void setHsaid(String hsaid) {
-		this.hsaid = hsaid;
-	}
 
-	public String getMunicipalityName() {
+	public String municipalityName() {
 		return municipalityName;
 	}
 
-	public void setMunicipalityName(String municipalityName) {
-		this.municipalityName = municipalityName;
-	}
 
-	public String getMunicipality() {
+	public String municipality() {
 		return municipality;
 	}
 
-	public void setMunicipality(String municipality) {
-		this.municipality = municipality;
-	}
 
-	public String getUrlBooking() {
+	public String urlBooking() {
 		return urlBooking;
 	}
 
-	public void setUrlBooking(String urlBooking) {
-		this.urlBooking = urlBooking;
-	}
 
-	public String getUrlContactCard() {
+	public String urlContactCard() {
 		return urlContactCard;
 	}
 
-	public void setUrlContactCard(String urlContactCard) {
-		this.urlContactCard = urlContactCard;
-	}
 
-	public String getUrlContactCardText() {
+	public String urlContactCardText() {
 		return urlContactCardText;
 	}
 
-	public void setUrlContactCardText(String urlContactCardText) {
-		this.urlContactCardText = urlContactCardText;
-	}
 
 	public String getTesttype() {
 		return testtype;
 	}
 
-	public void setTesttype(String testtype) {
-		this.testtype = testtype;
-	}
 
 	public Long getTimeslots() {
 		return timeslots;
@@ -125,14 +82,6 @@ public class TestCenter {
 
 	public String getUpdated() {
 		return updated;
-	}
-
-	public void setUpdated(String updated) {
-		this.updated = updated;
-	}
-
-	public void setTimeslots(Long timeslots) {
-		this.timeslots = timeslots;
 	}
 
 	@Override

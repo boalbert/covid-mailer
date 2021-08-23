@@ -46,7 +46,7 @@ public record Message(
 					               <hr>
 					               <br>
 					           </p>
-					""".formatted(testCenter.getMunicipalityName(), testCenter.getTitle(), testCenter.getTimeslots(), testCenter.getUrlBooking());
+					""".formatted(testCenter.municipalityName(), testCenter.title(), testCenter.getTimeslots(), testCenter.urlBooking());
 			stringBuilder.append(body);
 		}
 	}

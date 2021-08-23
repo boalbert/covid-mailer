@@ -15,10 +15,14 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
-public class RestClient implements IRestClient {
+import static org.springframework.web.reactive.function.client.WebClient.create;
 
+@Component
+public class RestClient {
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(RestClient.class);
+
+	private final WebClient webClient = create();
+
 	private final HashSet<String> oldTimeSlots = new LinkedHashSet<>();
 
 	@Value("${API_URI}")
@@ -28,14 +32,18 @@ public class RestClient implements IRestClient {
 	@Value("${CLIENT_SECRET}")
 	private String CLIENT_SECRET;
 
-	/**
-	 * Send a request to the API with id and secret loaded from config
-	 *
-	 * @return the whole request mapped to ListTestCenter POJO
-	 */
-	private ListTestCenter getFullResponseFromApi() {
+	public Map<String, TestCenter> getTestCentersFromRestAPI() {
+		Map<String, TestCenter> listCenters = convertDataFromApiCallToTestCenter();
 
-		WebClient webClient = WebClient.create();
+		Map<String, TestCenter> allAvailableTimeSlots = findAllAvailableTimeSlots(listCenters);
+
+		Map<String, TestCenter> updatedTestCenters = filterCentersByUpdated(allAvailableTimeSlots);
+
+		log.info("Centers from API: {}", updatedTestCenters.size());
+		return updatedTestCenters;
+	}
+
+	private ListTestCenter getFullResponseFromApi() {
 
 		try {
 			return callApi(webClient);
@@ -64,19 +72,13 @@ public class RestClient implements IRestClient {
 				.block();
 	}
 
-	/**
-	 * @return list of all the testcenters inside ListTestCenter
-	 */
-	@Override
 	public Map<String, TestCenter> convertDataFromApiCallToTestCenter() {
 		ListTestCenter listTestCenter = getFullResponseFromApi();
 
-		return listTestCenter.getTestcenters().stream()
-				.collect(Collectors.toMap(TestCenter :: getTitle, testCenter -> testCenter));
-
+		return listTestCenter.testcenters().stream()
+				.collect(Collectors.toMap(TestCenter :: title, testCenter -> testCenter));
 	}
 
-	@Override
 	public Map<String, TestCenter> findAllAvailableTimeSlots(Map<String, TestCenter> allTestCenters) {
 
 		return allTestCenters.entrySet().stream()
@@ -92,15 +94,13 @@ public class RestClient implements IRestClient {
 	 *
 	 * @return list if new timeSlots
 	 */
-
-	@Override
 	public Map<String, TestCenter> filterCentersByUpdated(Map<String, TestCenter> testCenterList) {
 
 		Map<String, TestCenter> newTimeSlots = new LinkedHashMap<>();
 
 		for (Map.Entry<String, TestCenter> testCenter : testCenterList.entrySet()) {
 
-			String newTimeSlotSignature = testCenter.getValue().getHsaid() + testCenter.getValue().getUpdated();
+			String newTimeSlotSignature = testCenter.getValue().hsaid() + testCenter.getValue().getUpdated();
 
 			if (oldTimeSlots.add(newTimeSlotSignature)) {
 				markTimeSlotAsSentToRecipient(newTimeSlots, newTimeSlotSignature, testCenter);
@@ -111,6 +111,6 @@ public class RestClient implements IRestClient {
 
 	private void markTimeSlotAsSentToRecipient(Map<String, TestCenter> newTimeSlots, String timeSlotSignature, Map.Entry<String, TestCenter> testCenter) {
 		oldTimeSlots.add(timeSlotSignature);
-		newTimeSlots.put(testCenter.getValue().getTitle(), testCenter.getValue());
+		newTimeSlots.put(testCenter.getValue().title(), testCenter.getValue());
 	}
 }

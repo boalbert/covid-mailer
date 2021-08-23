@@ -27,6 +27,8 @@ public class Scraper {
 			log.error(">>> Error parsing document when scraping...");
 			ex.printStackTrace();
 		}
+		log.info("Centers from Website: {}", scrapedTestCenters.size());
+
 		return scrapedTestCenters;
 	}
 

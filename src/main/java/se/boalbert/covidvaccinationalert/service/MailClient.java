@@ -47,7 +47,6 @@ public class MailClient {
 
 	public void sendEmailToRecipient(Email email) {
 		try {
-			log.info("Sending Email: " + email.getRecipients());
 			buildMailer().sendMail(email);
 		} catch (MailException e) {
 			e.printStackTrace();
