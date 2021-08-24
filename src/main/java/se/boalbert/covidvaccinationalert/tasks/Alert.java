@@ -45,14 +45,9 @@ public class Alert {
 	public void runTask() {
 		log.info(">>> Fetching TestCenters and mailing recipients...");
 
-		recipientsService.add(new Recipient("andersson.albert@gmail.com", "Göteborg"));
-		recipientsService.add(new Recipient("andersson.albert@gmail.com", "Göteborg"));
-		recipientsService.add(new Recipient("andersson.bo@gmail.com", "Uddevalla"));
-
 		Map<String, TestCenter> restTestCenters = restClient.getTestCentersFromRestAPI();
 		Map<String, TestCenter> scrapedTestCenters = scraper.scrapeBookingData();
 		List<TestCenter> uniqueTestCenters = mergeData(restTestCenters, scrapedTestCenters);
-
 
 		List<Recipient> recipients = recipientsService.get();
 
@@ -82,7 +77,6 @@ public class Alert {
 
 			List<TestCenter> matchingCenters = findMatchingTestCenters(mergedData, recipient);
 			sendMatchingTestCenterToRecipient(recipient, matchingCenters);
-
 		}
 	}
 
@@ -95,7 +89,8 @@ public class Alert {
 			Message message = createMessage(matchingCenters, recipient);
 			Email email = mailClient.setupEmailBuilder(message);
 			mailClient.sendEmailToRecipient(email);
-			log.info("Sending {} centers to {}...", matchingCenters.size(), recipient.email());
+
+			log.info("- Sending {} centers to {}", matchingCenters.size(), recipient.email());
 		}
 	}
 
