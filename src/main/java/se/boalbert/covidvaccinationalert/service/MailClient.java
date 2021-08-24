@@ -36,7 +36,6 @@ public class MailClient {
 
 	public Email setupEmailBuilder(Message message) {
 
-		//TODO Update email in from-field
 		return EmailBuilder.startingBlank()
 				.from("From", FROM_EMAIL)
 				.to("To", message.recipient().email())

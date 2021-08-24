@@ -72,14 +72,14 @@ public class RestClient {
 				.block();
 	}
 
-	public Map<String, TestCenter> convertDataFromApiCallToTestCenter() {
+	private Map<String, TestCenter> convertDataFromApiCallToTestCenter() {
 		ListTestCenter listTestCenter = getFullResponseFromApi();
 
 		return listTestCenter.testcenters().stream()
 				.collect(Collectors.toMap(TestCenter :: title, testCenter -> testCenter));
 	}
 
-	public Map<String, TestCenter> findAllAvailableTimeSlots(Map<String, TestCenter> allTestCenters) {
+	private Map<String, TestCenter> findAllAvailableTimeSlots(Map<String, TestCenter> allTestCenters) {
 
 		return allTestCenters.entrySet().stream()
 				.filter(map -> map.getValue().getTimeslots() != null)
@@ -94,7 +94,7 @@ public class RestClient {
 	 *
 	 * @return list if new timeSlots
 	 */
-	public Map<String, TestCenter> filterCentersByUpdated(Map<String, TestCenter> testCenterList) {
+	private Map<String, TestCenter> filterCentersByUpdated(Map<String, TestCenter> testCenterList) {
 
 		Map<String, TestCenter> newTimeSlots = new LinkedHashMap<>();
 

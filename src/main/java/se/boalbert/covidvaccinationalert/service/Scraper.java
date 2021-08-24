@@ -70,17 +70,17 @@ public class Scraper {
 		}
 	}
 
-	public String extractTestCenterTitle(String heading) {
+	private String extractTestCenterTitle(String heading) {
 		String[] splitHeading = heading.split(":");
 		return splitHeading[1].trim();
 	}
 
-	public String extractMunicipalityName(String heading) {
+	private String extractMunicipalityName(String heading) {
 		String[] splitHeading = heading.split(":");
 		return splitHeading[0].trim();
 	}
 
-	public Long extractAvailableTimeSlots(String openSlotsText) {
+	private Long extractAvailableTimeSlots(String openSlotsText) {
 		String[] splitSentence = openSlotsText.split("lediga");
 
 		return valueOf(splitSentence[0].replaceAll("[^\\d]", ""));

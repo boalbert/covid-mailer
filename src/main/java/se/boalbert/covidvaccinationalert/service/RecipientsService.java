@@ -14,26 +14,25 @@ public class RecipientsService {
 	private final List<Recipient> recipients = new ArrayList<>();
 
 	public List<Recipient> get() {
-
 		log.info("Recipients: {}", recipients.size());
 		return this.recipients;
 	}
 
 	public boolean add(Recipient recipient) {
 		if (!recipients.contains(recipient)) {
-			log.info("Recipient added: {}", recipient.toString());
+			log.info("Recipient added: {}", recipient);
 			return recipients.add(recipient);
 		}
-		log.info("Failed to add, {} already exists.", recipient.toString());
+		log.info("Failed to add, {} already exists.", recipient);
 		return false;
 	}
 
 	public boolean remove(Recipient recipient) {
 		if (recipients.contains(recipient)) {
-			log.info("Recipient removed: {}", recipient.toString());
+			log.info("Recipient removed: {}", recipient);
 			return recipients.remove(recipient);
 		}
-		log.info("Failed to remove {}, not found.", recipient.toString());
+		log.info("Failed to remove {}, not found.", recipient);
 		return false;
 	}
 }

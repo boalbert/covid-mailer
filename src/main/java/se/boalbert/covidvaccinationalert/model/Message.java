@@ -8,13 +8,13 @@ public record Message(
 ) {
 	public static Message createMessage(List<TestCenter> openTimeSlots, Recipient recipient) {
 
-		String content = Message.createContent(openTimeSlots, recipient);
+		String content = createContent(openTimeSlots, recipient);
 
 		return new Message(recipient, content);
 
 	}
 
-	public static String createContent(List<TestCenter> testCenterList, Recipient recipient) {
+	private static String createContent(List<TestCenter> testCenterList, Recipient recipient) {
 		StringBuilder stringBuilder = new StringBuilder();
 
 		appendHeader(recipient.municipality(), stringBuilder);
@@ -24,7 +24,7 @@ public record Message(
 		return String.valueOf(stringBuilder);
 	}
 
-	public static void appendHeader(String region, StringBuilder stringBuilder) {
+	private static void appendHeader(String region, StringBuilder stringBuilder) {
 		String header = """
 				<html>
 					<body>
@@ -34,7 +34,7 @@ public record Message(
 		stringBuilder.append(header);
 	}
 
-	public static void createBody(List<TestCenter> testCenterList, StringBuilder stringBuilder) {
+	private static void createBody(List<TestCenter> testCenterList, StringBuilder stringBuilder) {
 		for (TestCenter testCenter : testCenterList) {
 			String body = """
 					           <p>
@@ -51,7 +51,7 @@ public record Message(
 		}
 	}
 
-	public static void appendFooter(StringBuilder stringBuilder) {
+	private static void appendFooter(StringBuilder stringBuilder) {
 		String footer = """
 					</body>
 				</html>

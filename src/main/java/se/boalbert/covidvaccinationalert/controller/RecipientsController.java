@@ -19,19 +19,19 @@ public class RecipientsController {
 	}
 
 	@GetMapping("/recipients/")
-	public List<Recipient> getRecipients() {
+	private List<Recipient> getRecipients() {
 		log.info("> GET /recipients/" + " called.");
 		return recipientsService.get();
 	}
 
 	@PostMapping("/recipients/")
-	public boolean postRecipient(@RequestBody Recipient recipient) {
+	private boolean postRecipient(@RequestBody Recipient recipient) {
 		log.info("> POST /recipients/ called.");
 		return recipientsService.add(recipient);
 	}
 
 	@DeleteMapping("/recipients/")
-	public boolean deleteRecipient(@RequestBody Recipient recipient) {
+	private boolean deleteRecipient(@RequestBody Recipient recipient) {
 		log.info("> DELETE /recipients/ called.");
 		return recipientsService.remove(recipient);
 	}
